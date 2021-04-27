@@ -13,13 +13,13 @@ Cary:
 
 1. Implement workflow via luigi
 
-2. NLP of essay responses(for toy data we will use learn.parquet from pset3 and the first paragraph of colleges wikipedia articles)
+2. NLP of essay responses (for toy data we will use learn.parquet from pset3 and the first paragraph of colleges wikipedia articles)
 
 Robi:
 
 1. Models (python classes that structure the database).
 
-2. Djiango web frontend
+2. Django web frontend
 
 Shared:
 
