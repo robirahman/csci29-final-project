@@ -2,16 +2,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import *
 
 
-class User(AbstractUser):
-    def __str__(self):
-        return str(self.username)
-
-
 class College(Model):
     def __str__(self):
         return str(self.name)
 
-    name = CharField()
+    name = CharField(max_length=50)
     id = PositiveSmallIntegerField(primary_key=True)
     population = PositiveIntegerField()
     description = TextField()
@@ -19,18 +14,23 @@ class College(Model):
     sat_min = PositiveSmallIntegerField()
     sat_max = PositiveSmallIntegerField()
     tuition = PositiveIntegerField()
-    tuition_in_state = PositiveIntegerField()
+    tuition_in_state = PositiveIntegerField(null=True)
     rating = PositiveSmallIntegerField()
     public = BooleanField()
 
 
 class State(Model):
-    name = CharField()
+    def __str__(self):
+        return str(self.name)
+
+    name = CharField(max_length=25)
     id = PositiveSmallIntegerField(primary_key=True)
-    region = ForeignKey("Region", on_delete=SET_NULL)
+    region = ForeignKey("Region", on_delete=SET_NULL, null=True)
 
 
 class Region(Model):
-    name = CharField()
+    def __str__(self):
+        return str(self.name)
+
+    name = CharField(max_length=25)
     id = PositiveSmallIntegerField(primary_key=True)
-    neighbors = ForeignKey("Region", on_delete=SET_NULL)
