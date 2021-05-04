@@ -1,9 +1,12 @@
+import re
+import pandas as pd
 from bs4 import BeautifulSoup
 import codecs
 import wikipedia
 from gensim.models import Word2Vec
-import re
+from functools import reduce
 import numpy as np
+from embedding import WordEmbedding
 html = codecs.open("niche_college_list_1.html")
 soup = BeautifulSoup(html, 'html.parser')
 
@@ -31,15 +34,10 @@ for x in soup.select(".card"):
                     feature = sat
                     for w in z.select(".search-result-fact__value"):
                         feature.append(w.text)
-def tokenize(text):
-    """Get all "words", including contractions
-    Example::
-        tokenize("Hello, I'm Scott") --> ['hello', "i'm", 'scott']
-    :returns: list of words in statement.
-    :rtype: list
-    """
-    return re.findall(r"\w[\w']+", text.lower())
-tokenized_sentences = np.array(list(map(tokenize,wiki_list)))
+tokenized_sentences = np.array(list(map(WordEmbedding.tokenize,wiki_list)))
 model = Word2Vec(tokenized_sentences, window=2, min_count=0)
-words = model.wv.key_to_index()
-we_dict = {word:model.wv[word] for word in words}
+words = model.wv.key_to_index
+we_dict = {word:reduce(lambda x, y: x + y,model.wv[word]) for word in words}
+embedding = WordEmbedding(we_dict)
+college_embeddings = np.array(list(map(embedding.embed_document,wiki_list)))
+
