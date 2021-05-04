@@ -39,5 +39,5 @@ model = Word2Vec(tokenized_sentences, window=2, min_count=0)
 words = model.wv.key_to_index
 we_dict = {word:reduce(lambda x, y: x + y,model.wv[word]) for word in words}
 embedding = WordEmbedding(we_dict)
-college_embeddings = np.array(list(map(embedding.embed_document,wiki_list)))
-
+embeddings = np.array(list(map(embedding.embed_document,wiki_list)))
+college_embedding = pd.DataFrame(embeddings,names)
