@@ -26,13 +26,15 @@ for x in soup.select(".card"):
             wiki_list.append(wiki)
         for z in x.select(".search-result-fact"):
             for q in z.select(".search-result-fact__label"):
-                if q.text == "Acceptance Rate":
-                    feature = attend
-                if q.text == "Net Price":
-                    feature = price
-                if q.text == "SAT Range":
-                    feature = sat
-                    for w in z.select(".search-result-fact__value"):
+                for w in z.select(".search-result-fact__value"):
+                    if q.text == "Acceptance Rate":
+                        feature = attend
+                        feature.append(w.text)
+                    if q.text == "Net Price":
+                        feature = price
+                        feature.append(w.text)
+                    if q.text == "SAT Range":
+                        feature = sat
                         feature.append(w.text)
 tokenized_sentences = np.array(list(map(WordEmbedding.tokenize,wiki_list)))
 model = Word2Vec(tokenized_sentences, window=2, min_count=0)
@@ -41,3 +43,4 @@ we_dict = {word:reduce(lambda x, y: x + y,model.wv[word]) for word in words}
 embedding = WordEmbedding(we_dict)
 embeddings = np.array(list(map(embedding.embed_document,wiki_list)))
 college_embedding = pd.DataFrame(embeddings,names)
+college_facts = {'sat': sat, 'names': names, 'price': price, 'attend': attend}
