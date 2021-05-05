@@ -8,14 +8,17 @@ from prefect import task, Flow
 import numpy as np
 from embedding import WordEmbedding
 from prefect.agent.local import LocalAgent
+import csv
 
+@task(log_stdout=True,nout=3)
 def college_facts():
     html = codecs.open("niche_college_list_1.html")
     soup = BeautifulSoup(html, 'html.parser')
     names = []
     attend = []
     price = []
-    sat = []
+    sat_min = []
+    sat_max = []
     wiki_list = []
     state = []
     size = []
@@ -23,11 +26,12 @@ def college_facts():
         if x.find(string="Sponsored") is None:
             for y in x.select(".search-result__title"):
                 name = y.text
+                names.append(name)
                 if name == 'William & Mary':
                     name = 'College of William & Mary'
-                search = wikipedia.search(y.text)[0]
+                search = wikipedia.search(name)[0]
                 gov_api = requests.get(
-                    "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.name=" + name + "&fields=id,school.name,school.state,2018.student.size&api_key=Cs0K2iI7mMCdblkudyJjzzkhntdNgRzyUgrSHFPk").json()
+                    "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.name=" + name + "&fields=id,school.name,school.state,2018.student.size&api_key=iaXf7WP3wErOgNGAQRBblY905k4JDfHmeDSYBpcR").json()
                 if search == "Northwestern University":
                     search = "north western university"
                 elif search == "Bowdoin College":
@@ -40,10 +44,10 @@ def college_facts():
                     search = 'kenyan college'
                 wiki = wikipedia.page(search).content
                 wiki_list.append(wiki)
-                if name == 'William & Mary':
+                if name == 'College of William & Mary':
                     size.append(6300)
                     state.append('VA')
-                if name == 'Massachusetts Institute of Technology':
+                elif name == 'Massachusetts Institute of Technology' or name == 'Harvard University' :
                     size.append(4500)
                     state.append('MA')
                 elif name == 'Washington University in St. Louis':
@@ -71,23 +75,19 @@ def college_facts():
                 for q in z.select(".search-result-fact__label"):
                     for w in z.select(".search-result-fact__value"):
                         if q.text == "Acceptance Rate":
-                            feature = attend
-                            feature.append(w.text)
+                            attend.append(w.text)
                         if q.text == "Net Price":
-                            feature = price
-                            feature.append(w.text)
+                            price.append(w.text)
                         if q.text == "SAT Range":
-                            feature = sat
-                            feature.append(w.text)
-            data = {'wiki_list': wiki_list, 'sat': sat, 'names': names, 'price': price, 'acceptance': attend,
+                            sat_min.append(w.text[0:4])
+                            sat_max.append(w.text[-4:])
+    data = {'sat_min': sat_min, 'sat_max': sat_max, 'names': names, 'price': price, 'acceptance': attend,
                     'size': size, 'state': state}
     college_facts = pd.DataFrame(data=data)
     college_facts.to_csv('facts.csv')
-
-@task(log_stdout=True,nout=2)
-def college_embeddings(list):
-    wiki_list = list['wiki_list']
-    names = list['names']
+    return wiki_list, names, college_facts
+@task(log_stdout=True,nout=3)
+def college_embeddings(wiki_list, names):
     tokenized_sentences = np.array(list(map(WordEmbedding.tokenize,wiki_list)))
     model = Word2Vec(tokenized_sentences, window=2, min_count=0, vector_size=100, workers=4)
     words = model.wv.key_to_index
@@ -99,9 +99,9 @@ def college_embeddings(list):
     return college_embedding
 
 with Flow("data analysis") as flow:
-    college_facts = college_facts()
-    college_embedding = college_embeddings(college_facts)
- 
+    wiki_list, names, college_facts = college_facts()
+    college_embedding = college_embeddings(wiki_list,names)
+
 flow.register(project_name="college")
 LocalAgent().start()
 flow.run()
