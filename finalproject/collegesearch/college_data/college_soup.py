@@ -21,14 +21,13 @@ class LocalFile(Task):  ##pargma: no cover
             "./niche_college_list_1.html", format=luigi.format.Nop
         )
 class Embeddings(Task):
-
+    """embeds the wikipedia articles with Word2Vec and wikipedia api via luigi
+    input: list of colleges
+    output: csv containing the embedding vectors and words"""
     def output(self):
         return LocalTarget(
             "./embedding.csv", format=luigi.format.Nop
         )
-    def requires(self):
-        return {LocalFile()}
-
     def run(self):
         html = codecs.open("niche_college_list_1.html")
         soup = BeautifulSoup(html, 'html.parser')
@@ -86,3 +85,7 @@ class Embeddings(Task):
                          'size': size, 'state': state}
         college_embedding = pd.DataFrame(data=college_facts)
         college_embedding.to_csv('embedding.csv')
+class Facts(Task):
+    """grabs relevent facts from html pages from niche using BeutifulSoup via luigi
+    input: html from niche
+    output: csv containing college facts"""
