@@ -15,6 +15,11 @@ pyarrow = "*"
 openpyxl = "*"
 fsspec = "*"
 django = "*"
+bs4 = "*"
+wikipedia = "*"
+gensim = "*"
+requests = "*"
+prefect = "*"
 
 [requires]
 python_version = "3.8"
