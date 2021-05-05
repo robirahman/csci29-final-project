@@ -9,6 +9,8 @@ import numpy as np
 from embedding import WordEmbedding
 from prefect.agent.local import LocalAgent
 import csv
+import os
+
 
 @task(log_stdout=True,nout=3)
 def college_facts():
@@ -47,8 +49,11 @@ def college_facts():
                 if name == 'College of William & Mary':
                     size.append(6300)
                     state.append('VA')
-                elif name == 'Massachusetts Institute of Technology' or name == 'Harvard University' :
+                elif name == 'Massachusetts Institute of Technology':
                     size.append(4500)
+                    state.append('MA')
+                elif name == "Harvard University":
+                    size.append(6755)
                     state.append('MA')
                 elif name == 'Washington University in St. Louis':
                     size.append(7356)
@@ -63,11 +68,17 @@ def college_facts():
                     size.append(845)
                     state.append('NY')
                 elif name == 'Texas A&M University':
-                    size.append(60000)
+                    size.append(56205)
                     state.append('TX')
                 elif name == 'The Ohio State University':
-                    size.append(50000)
+                    size.append(46984)
                     state.append('OH')
+                elif name == 'Cornell University':
+                    size.append(15105)
+                    state.append('NY')
+                elif name == 'University of Chicago':
+                    size.append(6600)
+                    state.append('IL')
                 else:
                     size.append(gov_api['results'][0]['2018.student.size'])
                     state.append(gov_api['results'][0]['school.state'])
@@ -86,6 +97,7 @@ def college_facts():
     college_facts = pd.DataFrame(data=data)
     college_facts.to_csv('facts.csv')
     return wiki_list, names, college_facts
+
 @task(log_stdout=True,nout=3)
 def college_embeddings(wiki_list, names):
     tokenized_sentences = np.array(list(map(WordEmbedding.tokenize,wiki_list)))
@@ -103,5 +115,5 @@ with Flow("data analysis") as flow:
     college_embedding = college_embeddings(wiki_list,names)
 
 flow.register(project_name="college")
-LocalAgent().start()
+# LocalAgent().start()
 flow.run()
