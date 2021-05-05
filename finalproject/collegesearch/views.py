@@ -4,4 +4,4 @@ from django.http import HttpResponse
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the college search homepage.")
+    return render(request, "collegesearch/index.html", {"colleges": None})
