@@ -119,14 +119,14 @@ def create_dict(wiki_list, bypass):
     return pd.DataFrame(data=we_dict)
 @task(log_stdout=True,nout=4,result=LocalResult(serializer=PandasSerializer(file_type='csv'),dir='./',location="college_embeddings.csv"))
 def college_embeddings(we_dict, wiki_list, facts, bypass):
+    if bypass:
+        return pd.read_csv('./college_embeddings.csv')
     names = facts['names'].to_list()
     wiki_list = wiki_list['wiki'].to_list()
     tokenized_sentences = np.array(list(map(WordEmbedding.tokenize,wiki_list)))
     model = Word2Vec(tokenized_sentences, window=2, min_count=0, vector_size=100, workers=4)
     words = model.wv.key_to_index
     we_dict = {word:model.wv[word] for word in words}
-    if bypass:
-        return pd.read_csv('./college_embeddings.csv')
     embedding = WordEmbedding(we_dict)
     embeddings = np.array(list(map(embedding.embed_document,wiki_list)))
     college_embedding = pd.DataFrame(embeddings,names)
