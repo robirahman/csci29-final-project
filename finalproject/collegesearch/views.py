@@ -5,16 +5,16 @@ from django.http import HttpResponse
 from .utils import top_matches, embed_description
 
 
-def index(request):
-    return render(request, "collegesearch/index.html")
+def search(request):
+    return render(request, "collegesearch/search.html")
 
 def results(request):
     if request.method == "POST":
         description = request.POST["description"]
         vector = embed_description(description)
-        size = int(request.POST["size"])
-        sat_verbal = int(request.POST["sat_verbal"])
-        sat_math = int(request.POST["sat_math"])
+        size = int(request.POST["size"] or 100)
+        sat_verbal = int(request.POST["sat_verbal"] or 200)
+        sat_math = int(request.POST["sat_math"] or 200)
         public = int(request.POST["public"])
         preferences = {
             "description": description,

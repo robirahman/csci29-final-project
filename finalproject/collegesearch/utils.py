@@ -1,5 +1,5 @@
 from numpy import log, abs
-from numpy import dot, zeros, add
+from numpy import dot, zeros, ones, add
 from numpy.linalg import norm as mag
 import pandas as pd
 import re
@@ -25,20 +25,26 @@ def score_all_colleges(preferences):
 
 def top_matches(preferences):
     colleges = score_all_colleges(preferences)
-    return colleges
+    return sorted(colleges, key = lambda i: i["score"], reverse=True)[0:10]
 
 def embed_description(description: str):
-    embedding_df = pd.read_csv("finalproject/collegesearch/college_data/embedding_dict.csv")
-    embedding = WordEmbedding(embedding_df)
-    description_vector = embedding.embed_document(description).values
-    return description_vector
+    if description == "":
+        return ""
+    else:
+        embedding_df = pd.read_csv("finalproject/collegesearch/college_data/embedding_dict.csv")
+        embedding = WordEmbedding(embedding_df)
+        description_vector = embedding.embed_document(description).values
+        return description_vector
 
 def calculate_match(preferences, college_info):
     score = 35
 
     # Describe the college you want to go to.
-    similarity = cosine_similarity(preferences["vector"], college_info["description"])
-    score += 25 * similarity
+    if preferences["vector"] == "":
+        score += 25
+    else:
+        similarity = cosine_similarity(preferences["vector"], college_info["description"])
+        score += 25 * similarity
 
     # How many undergraduates should the college have?
     x = preferences["size"]
@@ -49,7 +55,9 @@ def calculate_match(preferences, college_info):
     # User's SAT scores
     sat = preferences["sat_verbal"] + preferences["sat_math"]
     if sat < college_info["sat_min"]:
-        score += (sat - college_info["sat_min"])/20
+        score += (sat - college_info["sat_min"])/40
+    if sat < college_info["sat_max"]:
+        score += (sat - college_info["sat_max"])/40
 
     # College's ranking
     score += (100-college_info[0])/5
