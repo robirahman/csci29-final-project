@@ -33,7 +33,10 @@ def embed_description(description: str):
     else:
         embedding_df = pd.read_csv("finalproject/collegesearch/college_data/embedding_dict.csv")
         embedding = WordEmbedding(embedding_df)
-        description_vector = embedding.embed_document(description).values
+        try:
+            description_vector = embedding.embed_document(description).values
+        except AttributeError:
+            description_vector = ones(100)
         return description_vector
 
 def calculate_match(preferences, college_info):
@@ -132,7 +135,7 @@ class WordEmbedding(object):
         tokenized = self.tokenize(text)
         # setting 0 vector
         default = zeros(
-            300,
+            100,
         )
         # getting a map of the dictionary vectors
         vec = map(lambda t: self.dict.get(t, default), tokenized)
