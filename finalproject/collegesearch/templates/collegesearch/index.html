@@ -6,18 +6,20 @@ College Search E-29
 
 {% block body %}
 <h2>College Search E-29</h2>
-<form>
+<p>Use this form to find your ideal college!</p>
+<form action="results" method="post">
+    {% csrf_token %}
     <br />
     <div class="form-group">
         <label for="descriptionTextArea">Description: text field where you can describe the college you want.</label>
         <br />
-        <textarea class=""form-control" id="descriptionTextArea" rows="3">describe college here</textarea>
+        <input type="text" id="descriptionTextArea" name="description" />
     </div>
     <br />
     <div class="form-group">
         <label for="sizeNumericInput">Size: numeric field where you specify how many undergraduates the school should have.</label>
         <br />
-        <input type="text" />
+        <input type="number" id="sizeNumericInput" name="size" />
     </div>
     <br />
     <div class="form-group">
@@ -48,22 +50,23 @@ College Search E-29
     <br />
     <div class="form-group">
         <label for="verbalNumericInput">SAT Reading score:</label>
-        <input type="text" />
+        <input type="number" id="verbalNumericInput" name="sat_verbal" />
         <br />
         <label for="mathNumericInput">SAT Math score:</label>
-        <input type="text" />
+        <input type="number" id="mathNumericInput" name="sat_math" />
         <br />
         Colleges where the 25th percentile SAT is higher than your scores receive a penalty in the recommendations.
     </div>
     <br />
     <div class="form-group">
         <label for="publicSelect">Public/private preference: do you prefer public colleges, private colleges, or neither?</label>
-        <select id="publicSelect">
-            <option>Public</option>
-            <option>Private</option>
-            <option>No preference</option>
+        <select id="publicSelect" name="public">
+            <option value="1">Public</option>
+            <option value="0">Private</option>
+            <option value="2">No preference</option>
         </select>
     </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>
-</form>{% endblock %}
+</form>
+{% endblock %}
