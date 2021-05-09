@@ -10,12 +10,16 @@ def cosine_similarity(a, b):
     similarity = dot(a, b) / (mag(a) * mag(b))
     return similarity
 
+
 def get_colleges():
     college_info = pd.read_csv("finalproject/collegesearch/college_data/facts.csv")
-    college_embeddings = pd.read_csv("finalproject/collegesearch/college_data/embedding.csv")
+    college_embeddings = pd.read_csv(
+        "finalproject/collegesearch/college_data/embedding.csv"
+    )
     vectors = [row[1][1:] for row in college_embeddings.iterrows()]
     college_info["description"] = vectors
     return [row[1] for row in college_info.iterrows()]
+
 
 def score_all_colleges(preferences):
     colleges = get_colleges()
@@ -23,21 +27,26 @@ def score_all_colleges(preferences):
         college["score"] = calculate_match(preferences, college)
     return colleges
 
+
 def top_matches(preferences):
     colleges = score_all_colleges(preferences)
-    return sorted(colleges, key = lambda i: i["score"], reverse=True)[0:10]
+    return sorted(colleges, key=lambda i: i["score"], reverse=True)[0:10]
+
 
 def embed_description(description: str):
     if description == "":
         return ""
     else:
-        embedding_df = pd.read_csv("finalproject/collegesearch/college_data/embedding_dict.csv")
+        embedding_df = pd.read_csv(
+            "finalproject/collegesearch/college_data/embedding_dict.csv"
+        )
         embedding = WordEmbedding(embedding_df)
         try:
             description_vector = embedding.embed_document(description).values
         except AttributeError:
             description_vector = ones(100)
         return description_vector
+
 
 def calculate_match(preferences, college_info):
     score = 35
@@ -46,28 +55,32 @@ def calculate_match(preferences, college_info):
     if preferences["vector"] == "":
         score += 25
     else:
-        similarity = cosine_similarity(preferences["vector"], college_info["description"])
+        similarity = cosine_similarity(
+            preferences["vector"], college_info["description"]
+        )
         score += 25 * similarity
 
     # How many undergraduates should the college have?
     x = preferences["size"]
     y = college_info["size"]
-    size_match = 1-(abs(log(x/y)))
+    size_match = 1 - (abs(log(x / y)))
     score += 10 * size_match
 
     # User's SAT scores
     sat = preferences["sat_verbal"] + preferences["sat_math"]
     if sat < college_info["sat_min"]:
-        score += (sat - college_info["sat_min"])/40
+        score += (sat - college_info["sat_min"]) / 5
     if sat < college_info["sat_max"]:
-        score += (sat - college_info["sat_max"])/40
+        score += (sat - college_info["sat_max"]) / 5
+    score += (1600 - sat) / 10
+    # 100 SAT points = 5 match points
 
     # College's ranking
-    score += (100-college_info[0])/5
+    score += (100 - college_info[0]) / 5
 
     # Tuition
-    price = int(re.sub('\D','',college_info["price"]))
-    score += -price/5000
+    price = int(re.sub("\D", "", college_info["price"]))
+    score += -price / 5000
 
     # Do you prefer public colleges, private colleges, or neither?
     if preferences["public"] == 2:
@@ -77,8 +90,7 @@ def calculate_match(preferences, college_info):
     elif preferences["public"] != college_info["public"]:
         score += -10
 
-    return score
-
+    return round(score, 3)
 
 
 class WordEmbedding(object):
@@ -134,9 +146,7 @@ class WordEmbedding(object):
         # of the vocabulary
         tokenized = self.tokenize(text)
         # setting 0 vector
-        default = zeros(
-            100,
-        )
+        default = zeros(100)
         # getting a map of the dictionary vectors
         vec = map(lambda t: self.dict.get(t, default), tokenized)
         # reducing the matrixes via
