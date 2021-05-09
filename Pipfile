@@ -1,29 +1,11 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
-pytest = "*"
-pytest-cov = "*"
+name = "pypi"
 
 [packages]
-environs = "*"
-pandas = "*"
-GitPython = "*"
-pyarrow = "*"
-openpyxl = "*"
-fsspec = "*"
-django = "*"
-bs4 = "*"
-wikipedia = "*"
-gensim = "*"
-requests = "*"
-prefect = "*"
+
+[dev-packages]
 
 [requires]
 python_version = "3.8"
-
-[packages.csci-utils]
-editable = true
-git = "https://github.com/csci-e-29/2021sp-csci-utils-robirahman"
