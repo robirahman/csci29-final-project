@@ -1,0 +1,73 @@
+{% extends "collegesearch/layout.html" %}
+
+{% block title %}
+College Search E-29
+{% endblock %}
+
+{% block body %}
+<h2>College Search E-29</h2>
+<p>Use this form to find the college of your dreams!</p>
+<form action="results" method="post">
+    {% csrf_token %}
+    <br />
+    <div class="form-group">
+        <label for="descriptionTextArea">Description: text field where you can describe the college you want.</label>
+        <br />
+        <input type="text" id="descriptionTextArea" name="description" />
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="sizeNumericInput">Size: numeric field where you specify how many undergraduates the school should have.</label>
+        <br />
+        <input type="number" id="sizeNumericInput" name="size" />
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="locationMultiSelect">Desired location: multi-select where you can choose states you want to go to college in.</label>
+        <br />
+        <select multiple id="locationMultiSelect">
+            <option>Alabama</option>
+            <option>Alaska</option>
+            <option>Arizona</option>
+            <option>Arkansas</option>
+            <option>...</option>
+        </select>
+        <br />
+        <input type="checkbox" id="nearbyCheckbox">
+        <label for="nearbyCheckbox">Prefer nearby states too</label>
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="residenceSelect">State of residence: select a state where you get in-state tuition. Cost is lowered for public schools in that state.</label><br />
+        <select id="residenceSelect">
+            <option>None/International</option>
+            <option>Alabama</option>
+            <option>Alaska</option>
+            <option>Arizona</option>
+            <option>Arkansas</option>
+            <option>...</option>
+        </select>
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="verbalNumericInput">SAT Reading score:</label>
+        <input type="number" id="verbalNumericInput" name="sat_verbal" />
+        <br />
+        <label for="mathNumericInput">SAT Math score:</label>
+        <input type="number" id="mathNumericInput" name="sat_math" />
+        <br />
+        Colleges where the 25th percentile SAT is higher than your scores receive a penalty in the recommendations.
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="publicSelect">Public/private preference: do you prefer public colleges, private colleges, or neither?</label><br />
+        <select id="publicSelect" name="public">
+            <option value="1">Public</option>
+            <option value="0">Private</option>
+            <option value="2">No preference</option>
+        </select>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

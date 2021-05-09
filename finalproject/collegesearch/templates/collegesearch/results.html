@@ -1,0 +1,31 @@
+{% extends "collegesearch/layout.html" %}
+
+{% block title %}
+College Search E-29
+{% endblock %}
+
+{% block body %}
+<h2>Results</h2>
+
+<div>
+    Your input:<br />
+    Description: "{{ preferences.description }}"<br />
+    Size: {{ preferences.size }}<br/>
+    SAT Reading: {{ preferences.sat_verbal }}<br />
+    SAT Math: {{ preferences.sat_math }}<br/>
+    Public or private: {% if preferences.public == 1 %}public{% elif preferences.public == 0 %}private{% else %}no preference{% endif %}
+</div>
+<br /><br />
+
+{% for result in colleges %}
+<div>
+    <h5>{{ result.names }}</h5>
+    Match score: {{ result.score }}<br />
+    Students: {{ result.size }}<br />
+    Location: {{ result.state }}<br />
+    Net cost: {{ result.price }}<br />
+    SAT range: {{ result.sat_min }} - {{ result.sat_max }}
+</div><br />
+{% endfor %}
+
+{% endblock %}

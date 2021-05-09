@@ -57,9 +57,9 @@ class WordEmbedding(object):
         # of the vocabulary
         tokenized = self.tokenize(text)
         # setting 0 vector
-        default = np.zeros(
-            300,
-        )
+        # fmt: off
+        default = np.zeros(300,)
+        # fmt: on
         # getting a map of the dictionary vectors
         vec = map(lambda t: self.dict.get(t, default), tokenized)
         # reducing the matrixes via
