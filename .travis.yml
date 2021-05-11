@@ -1,34 +1,37 @@
 # Config file for automatic testing at travis-ci.org
-env:
-  global:
-    - CANVAS_URL=https://canvas.harvard.edu/
 language: python
 python:
   - 3.8
 
-before_script:
-   - echo -e "machine github.com\n  login $CI_USER_TOKEN" > ~/.netrc
-   - pipenv install --dev --ignore-pipfile --deploy
+before_install:
+- echo -e "machine github.com\n  login $CI_USER_TOKEN" > ~/.netrc
 
+install:
+  - pipenv install --dev --ignore-pipfile --deploy
+
+before_script: # code coverage tool
+   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+   - chmod +x ./cc-test-reporter
+   - ./cc-test-reporter before-build
 script:
-  - skip
+  - pytest --cov-report xml --cov-report term
+  - make -C docsrc html
+  - cp -a docsrc/_build/html/. docs
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 
-stages:
-  - build
-jobs:
-  include:
-    - stage: build
-      name: Deploy to GitHub Pages
-      script:
-        - pipenv run python submit.py
-        - pipenv run make -C docs/ html
-        - touch docs/build/html/.nojekyll
-      deploy:
-        provider: pages:git
-        verbose: true
-        token: "$CI_USER_TOKEN"
-        edge: true
-        local_dir: ./docs/build/html/
-        keep_history: true
-        on:
-          branch: master
+deploy:
+- provider: pages:git
+  skip_cleanup: true
+  on:
+    branch: master
+  verbose: true
+  token: $GITHUB_TOKEN
+  edge: true
+  local_dir: ./docs
+  keep_history: true
+- provider: script
+  skip_cleanup: true
+  on:
+    branch: master
+  script: pipenv run python -m submission
