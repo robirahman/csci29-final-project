@@ -101,9 +101,25 @@ Django models for details.
 
 ### Project Conclusions
 
-In conclusion, it can be said this project demonstrates how to wrangle data. It is noteworthy that Niche charges money
-for their api, most of which can be obtained via html files and python. This project also possibly makes a better college
-matching app then any other on the internet. We have a free response form, and our results are quantitative rather than
-categorical. This project also can teach someone how to work with Prefect, Beautiful Soup, and the Wikipedia pypi package.
-The code was made more readable then advanced, to enable coders to learn.
+During this project, we gained experience with various aspects of Python programming. Web scraping was a new challenge
+not explored earlier in the class, but we were able to find and apply several packages that made it easy to collect
+valuable data. It is noteworthy that Niche sells the data we needed through a premium subscription service, but as
+advanced python programmers, it is possible to obtain it for free using open source tools, and even automate the process.
+
+Advanced python concepts were applied in several ways to optimize the project's implementation. The Prefect library's `@task`
+decorator can be applied to any functions to wrap them into the workflow. Partial function evaluation was helpful when
+processing a set of user inputs, by binding it to the general function that computes the match between any student and
+any college, and returning a specific function that computes the match between any college and a *specific* student. This
+function can then be applied in a functional, vectorized manner to each college in the dataset, to efficiently find
+the top matches. Predicate pushdown on matching state or region foreign keys reduces computational overhead while
+finding colleges that match a student's location preferences.
+
+The final product, our college recommendation engine, produces better recommendations than any of the major alternatives
+available online from large companies such as College Board, US News, and Niche. Most of them are categorical, and work
+by ruling out schools that are not exact matches for a student's query: for example, they ask if you want to join a
+fraternity in college, and if you say yes (/no) they only show colleges that do (/don't) have fraternities. Our app
+is quantitative and still might put a college in your top 10 if it is different from one desired aspect but fulfills
+most of your other preferences. We also have a free response form that processes descriptions; there are similar
+alternatives, such as CollegeBoard's BigFuture, but those search for matching keywords rather than judging similarity
+of meaning or qualities.
 
