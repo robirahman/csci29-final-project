@@ -18,6 +18,20 @@ could also type in a specific college they are interested in, and the app will s
 During the course of this project we will learn how to query stored data using the Django framework, and use python to
 perform computations using this data as input and then deliver results to the user.
 
+### Project Scope
+
+Cary:
+
+1. Implement web scraping and data loading workflow via Prefect.
+2. NLP of Wikipedia articles to train word2vec model and embed college descriptions.
+3. GitHub Actions to deploy Sphinx documentation pages.
+
+Robi:
+
+1. ORM models to set up SQLite database of college information.
+2. Django web server and frontend HTML forms.
+3. Calculations that score colleges based on the user's input.
+
 ### Project Initialization Workflow
 
 The project begins with Niche's top 100 list of [Best colleges in America](https://www.niche.com/colleges/search/best-colleges/),
@@ -73,6 +87,17 @@ user-friendly. The workflow is organized into tasks and flows, designated by sim
 
 ### Application Deployment
 
+Once the workflow has completed, the app is ready for deployment. Upon running the Django server, the app hosts a web
+form with a survey of different aspects of colleges, including a free response text field. The user can fill in their
+preferences and a description of their desired college, and then submit the form. This triggers a POST request, from
+which Django obtains their inputs, and computes a match score based on the similarity of the user's responses to the
+data about each college, queried from the database which was populated by the workflow. The server then returns the top
+10 colleges by match score and displays them on a results page.
+
+The database models are designed using a snowflake schema with college locations stored as foreign keys to states rather
+than as strings. This allows states to be grouped into regions, and users can specify a preference to attend college in
+a geographical region, in which case colleges in those states are elevated in the results. See the docstrings for the
+Django models for details.
 
 ### Project Conclusions
 
@@ -82,19 +107,3 @@ matching app then any other on the internet. We have a free response form, and o
 categorical. This project also can teach someone how to work with Prefect, Beautiful Soup, and the Wikipedia pypi package.
 The code was made more readable then advanced, to enable coders to learn.
 
-
-Cary:
-
-1. Implement workflow via prefect.
-
-2. NLP of essay responses.
-
-3. GitHub Actions to deploy Sphinx documentation pages.
-
-Robi:
-
-1. Models (python classes that structure the database).
-
-2. Django web frontend
-
-3. calculations that score colleges based on the user input on forced choice questions.
