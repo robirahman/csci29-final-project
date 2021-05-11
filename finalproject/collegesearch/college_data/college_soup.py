@@ -14,16 +14,18 @@ from prefect.engine.results import LocalResult
 from prefect.engine.serializers import PandasSerializer
 
 def s3target(bypass):
-    '''grabs html file from s3 bucket
-input: none. besides bypass arg to skip task.
-output html file'''
+    """grabs html file from s3 bucket
+
+        :returns: html file
+        """
 #task decorator. @task(log_stdout=True,nout=4,result=LocalResult(serializer=PandasSerializer(file_type='csv'),dir='./',location="facts.csv"))
 @task(log_stdout=True,nout=4,result=LocalResult(serializer=PandasSerializer(file_type='csv'),dir='./',location="facts.csv"))
 def college_facts(bypass):
     """gets the facts about the colleges from niche html file, as well as the collegescore api.
-    input: html file, bypass arg to skip task
-    output: dictionary object"""
 
+        :returns: college facts.
+        :rtype: df
+    """
     #bypass arg, if true then task is skipped.
     if bypass:
         return pd.read_csv('./college_data.csv')
@@ -130,38 +132,32 @@ def college_facts(bypass):
       result=LocalResult(serializer=PandasSerializer(file_type='csv'), dir='./', location="wiki_list.csv"))
 def create_wiki(facts, bypass):
     """obtains the wikipedia pages of the colleges
-    input: college facts df
-    output: wikipedia pages in a df"""
+
+        :returns: wikipedia pages
+        :rtype: dict
+    """
     if bypass:
         return pd.read_csv('./wiki_list.csv')
     #grab names of colleges
-    names = facts['names'].to_list()
-    wiki_list = []
-    for search in names:
-        if search == 'William & Mary':
-            search = 'College of William & Mary'
-        if search == "Northwestern University":
-            search = "north western university"
-        elif search == "Bowdoin College":
-            search = 'bowden college'
-        elif search == "Williams College":
-            search = 'william college'
-        elif search == 'Northeastern University':
-            search = 'north western university'
-        elif search == 'Kenyon College':
-            search = 'kenyan college'
-        #search wikipedia
-        wiki = wikipedia.page(search).content
-        #save wikipedia page text in list
-        wiki_list.append(wiki)
-    data = {'wiki': wiki_list}
-    wiki_list = pd.DataFrame(data=data)
-    return wiki_list
+        names = facts['names'].to_list()
+        wiki_list = []
+        for search in names:
+            #search wikipedia
+            wiki = wikipedia.page(search).content
+            #save wikipedia page text in list
+            wiki_list.append(wiki)
+        data = {'wiki': wiki_list}
+        wiki_list = pd.DataFrame(data=data)
+        return wiki_list
 #task decorator
 @task(log_stdout=True, nout=4,
       result=LocalResult(serializer=PandasSerializer(file_type='csv'), dir='./', location="embedding_dict.csv"))
 def create_dict(wiki_list, bypass):
-    '''creates dictionary for the embedding class used in pset 3'''
+    """creates dictionary for the embedding class used in pset 3
+
+        :returns: vector/word dictionary.
+        :rtype: df
+    """
     if bypass:
         return pd.read_csv('./embedding_dict.csv')
     wiki_list = wiki_list['wiki'].to_list()
@@ -177,9 +173,11 @@ def create_dict(wiki_list, bypass):
 @task(log_stdout=True, nout=4,
       result=LocalResult(serializer=PandasSerializer(file_type='csv'), dir='./', location="college_embeddings.csv"))
 def college_embeddings(we_dict, wiki_list, facts, bypass):
-    '''embeds the colleges with the pset 3 wordembeddings class using word2vec dictionary
-    inputs: all collected info thus far
-    output: college embeddings'''
+    """embeds the colleges with the pset 3 wordembeddings class using word2vec dictionary
+
+        :returns: vectors for colleges.
+        :rtype: df
+    """
     if bypass:
         return pd.read_csv('./college_embeddings.csv')
     names = facts['names'].to_list()
@@ -195,9 +193,11 @@ def college_embeddings(we_dict, wiki_list, facts, bypass):
     return college_embedding
 
 with Flow("data analysis") as flow:
-    '''take all the python functions and feed them into prefect
-    no inputs or outputs'''
-    '''schedule all functions'''
+    """take all the python functions and feed them into prefect
+    
+        :returns: n/a
+        :rtype: n/a
+    """
     bypass = Parameter("bypass", default=False, required=False)
     college_fact = college_facts(bypass=bypass)
     wiki_list = create_wiki(college_fact, bypass=bypass)
