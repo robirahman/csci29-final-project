@@ -65,7 +65,7 @@ def calculate_match(preferences, college_info: List[Dict]) -> float:
     Our algorithm gives better scores to higher ranked schools and deducts
     points for high tuition cost and student body size dissimilar to
     the user's preference. MIT is the top university according to our
-    scraped docs data, so if their tuition were $0 and the user prefers
+    scraped docsrc data, so if their tuition were $0 and the user prefers
     a student population size of 4,350, it would receive a score of 100.
 
     The current algorithm is as follows:
