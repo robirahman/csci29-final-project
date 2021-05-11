@@ -6,10 +6,14 @@ from .utils import top_matches, embed_description
 
 
 def search(request):
+    """Displays the College Search E-29 search page."""
     return render(request, "collegesearch/search.html")
 
 
 def results(request):
+    """Accepts input in the form of a POST request when you fill out the
+    search form and submit it to the server, then invokes the scoring
+    function and displays the top matches."""
     if request.method == "POST":
         description = request.POST["description"]
         vector = embed_description(description)

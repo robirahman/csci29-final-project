@@ -3,15 +3,18 @@ from numpy import dot, zeros, ones, add
 from numpy.linalg import norm as mag
 import pandas as pd
 import re
-from functools import reduce
+from functools import reduce, partial
+from typing import List, Dict
 
 
-def cosine_similarity(a, b):
+def cosine_similarity(a, b) -> float:
+    """Calculates the angle between two vectors. If used on two word embedding
+    vectors, the effect is to return the similarity of their texts."""
     similarity = dot(a, b) / (mag(a) * mag(b))
     return similarity
 
 
-def get_colleges():
+def get_colleges() -> List[Dict]:
     college_info = pd.read_csv("finalproject/collegesearch/college_data/facts.csv")
     college_embeddings = pd.read_csv(
         "finalproject/collegesearch/college_data/embedding.csv"
@@ -21,14 +24,19 @@ def get_colleges():
     return [row[1] for row in college_info.iterrows()]
 
 
-def score_all_colleges(preferences):
+def score_all_colleges(preferences: List[Dict]) -> List[Dict]:
+    """Calls a partial() evaluation of calculate_match() to bind
+    the submitted list of preferences. The resulting partial function
+    is then used to associate a score with every college."""
     colleges = get_colleges()
+    score = partial(calculate_match, preferences=preferences)
     for college in colleges:
-        college["score"] = calculate_match(preferences, college)
+        college["score"] = score(college)
     return colleges
 
 
-def top_matches(preferences):
+def top_matches(preferences: List[Dict]) -> List[Dict]:
+    """Returns the top matching colleges for a given set of preferences."""
     colleges = score_all_colleges(preferences)
     return sorted(colleges, key=lambda i: i["score"], reverse=True)[0:10]
 
@@ -48,7 +56,57 @@ def embed_description(description: str):
         return description_vector
 
 
-def calculate_match(preferences, college_info):
+def calculate_match(preferences, college_info: List[Dict]) -> float:
+    """This is the app's main feature, an algorithm that produces a match score
+    based on preferences entered by the user and information about a college.
+    Scores are generally in the range of 0-100 for realistic inputs, but you
+    can land outside this interval by entering e.g. SAT scores not between
+    200-800, or a desired student body size outside of 600-60,000.
+    Our algorithm gives better scores to higher ranked schools and deducts
+    points for high tuition cost and student body size dissimilar to
+    the user's preference. MIT is the top university according to our
+    scraped source data, so if their tuition were $0 and the user prefers
+    a student population size of 4,350, it would receive a score of 100.
+
+    The current algorithm is as follows:
+
+    Score starts at +20.
+
+    +/- 25 points * similarity between user input and a college's
+    embedded wikipedia article vector. (If the user inputs no text,
+    every college gets +25 points.)
+
+    +/- 10 points * how closely the user's desired student population
+    matches the college's population. (logarithmic scale)
+
+    + 20 points - (college's Niche rank)/5. Top ranked MIT receives
+    twenty points, #100 ranked UC Irvine receives none.
+
+    +/- 10 points * [user's public/private preference matches school].
+    If the user says no preference, every college gets +10 points.
+
+    + 10 points if the college is in the user's preferred state; -1
+    otherwise. +5 points if the college is in the user's preferred
+    region, -2 otherwise. If state/region preferences are not entered,
+    every college gets +10 and +5 points respectively.
+
+    - 0.2 points * [college's tuition in thousands of dollars].
+    A college loses one point for every $5,000 of their tuition rate.
+
+    The above categories add up to 100 maximum, but with only 80 points
+    possible for colleges at the bottom of the list. Two more adjustments
+    are made based on the user's SAT scores:
+
+    - 0.2 points * [college's 75th percentile SAT score - user's SAT score]
+    - 0.2 points * [college's 25th percentile SAT score - user's SAT score]
+    These deduct points from colleges where the user has a lower SAT score
+    than the college's student body, so that the recommendations will show
+    colleges matching the user's academic stats.
+
+    + 0.1 points * [1600 - user's SAT score]
+    This allows colleges lower on the list to receive scores nearly 100
+    match points for applicants unlikely to attend the top schools.
+    """
     score = 35
 
     # Describe the college you want to go to.
@@ -84,7 +142,7 @@ def calculate_match(preferences, college_info):
 
     # Do you prefer public colleges, private colleges, or neither?
     if preferences["public"] == 2:
-        score += 0
+        score += 10
     elif preferences["public"] == college_info["public"]:
         score += 10
     elif preferences["public"] != college_info["public"]:
@@ -120,9 +178,9 @@ class WordEmbedding(object):
         return re.findall(r"\w[\w']+", text.lower())
 
     def cos_sim(self, reference, reference2):
-        """Get cosine similarity for two matrixes
+        """Get cosine similarity for two matrices
 
-        :returns: cosign simularity
+        :returns: cosign similarity
         :rtype: int
         """
         # get dot product of the arrays
@@ -134,7 +192,7 @@ class WordEmbedding(object):
     def embed_document(self, text):
         """Convert text to vector, by finding vectors for each word and combining
 
-        :param str document: the document (one or more words) to get a vector
+        :param str text: the document (one or more words) to get a vector
             representation for
 
         :return: vector representation of document
