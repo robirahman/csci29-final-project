@@ -3,7 +3,6 @@ from prefect import task, Flow, Parameter
 from embedding import college_embeddings, college_facts, create_wiki, create_dict
 from prefect.engine.results import LocalResult
 from prefect.engine.serializers import PandasSerializer
-
 with Flow("data analysis") as flow:
     """take all the python functions and feed them into prefect
     
