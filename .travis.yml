@@ -19,7 +19,7 @@ deploy:
 - provider: pages:git
   skip_cleanup: true
   on:
-    branch: master
+    branch: travis_docs
   verbose: true
   token: $GITHUB_TOKEN
   edge: true
