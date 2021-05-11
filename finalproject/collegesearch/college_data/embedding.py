@@ -1,12 +1,12 @@
 import re
 from functools import reduce
+import bs4 as BeautifulSoup
 import pandas as pd
 import codecs
 import wikipedia
 from gensim.models import Word2Vec
 import requests
 import numpy as np
-
 
 class WordEmbedding(object):
     def __init__(self, dict):
@@ -149,7 +149,7 @@ def college_facts(bypass):
     state = []
     size = []
     #using beautiful soup grab college fact data from the niche html file
-    fosr x in soup.select(".card"):
+    for x in soup.select(".card"):
         if x.find(string="Sponsored") is None:
             for y in x.select(".search-result__title"):
                 name = y.text
