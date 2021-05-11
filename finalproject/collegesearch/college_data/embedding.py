@@ -149,7 +149,7 @@ def college_facts(bypass):
     state = []
     size = []
     #using beautiful soup grab college fact data from the niche html file
-    for x in soup.select(".card"):
+    fosr x in soup.select(".card"):
         if x.find(string="Sponsored") is None:
             for y in x.select(".search-result__title"):
                 name = y.text
