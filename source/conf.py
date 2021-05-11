@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'College Search E-29'
-copyright = '2021, Robi Rahman'
-author = 'Robi Rahman'
+copyright = '2021, Robi Rahman, Cary Judson'
+author = 'Robi Rahman, Cary Judson'
 
 
 # -- General configuration ---------------------------------------------------
