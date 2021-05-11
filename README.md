@@ -46,6 +46,9 @@ The start of the cycle of the data begins with a html file of niche we uploaded 
     embeddings = np.array(list(map(embedding.embed_document, wiki_list)))
     college_embedding = pd.DataFrame(embeddings, names)
 
+In conclusion, it can be said this project demonstrates how to wrangle data. It is noteworthy that Niche charges money for a api, most of which can be obtained via html files and python. This project also possibly makes a better college matching app then any other on the internet. We have a free response forum, and our results are continious and not categorical. This project also can teach someone how to work with prefect, beautifulsoup, and the python wikipedia package. The code was made more readable then advanced, to enable coders to learn.
+
+
 Cary:
 
 1. Implement workflow via prefect.
