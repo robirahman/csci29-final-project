@@ -1,15 +1,39 @@
 # csci29-final-project
-Advanced Python for Data Science final project
 
-CSCI E-29 project proposal, Cary Judson and Robi Rahman
+## Advanced Python for Data Science final project
+by Cary Judson and Robi Rahman
 
-We want to make a web app that helps high schoolers decide where to apply to college. It would run on Django, with a frontend webpage that takes input from the user about their preferences (such as small vs large universities, geographical region, etc), queries a database with information about e.g. 100 colleges, computes some scoring functions that assess how well each college fits the user's preferences, and produces recommendations.
+### Project Proposal
 
-Example: user wants to go to university in the northeast, at a private school that has around 7000 undergraduates, and they have an SAT score of 1500 -> app recommends they should apply to Harvard.
+We want to make a web app that helps high schoolers decide where to apply to college. It would run on Django, with a
+frontend webpage that takes input from the user about their preferences (such as small vs large universities,
+geographical region, etc), queries a database with information about e.g. 100 colleges, computes some scoring functions
+that assess how well each college fits the user's preferences, and produces recommendations.
 
-Similarly to Pset 3's document embeddings, we can compute comparisons between different universities, so that users could also type in a specific college they are interested in and the app will show similar ones from the database. During the course of this project we will learn how to query stored data using the Django framework, and use python to perform computations using this data as input and then deliver results to the user.
+Example: user wants to go to university in the northeast, at a private school that has around 7000 undergraduates, and
+they have an SAT score of 1500 -> app recommends they should apply to Harvard.
 
-The start of the cycle of the data begins with a html file of niche we uploaded to s3. That html file is then feed into beautiful soup, where relevant facts are collected by analyzing the html. Some data points are also grabbed from collegescoreboard api. The package wikipedia is used to grab a list of wikipedia page contents saved as strings. These pages are all tokenized and feed into word2vec to create a vector/word model to then embed the wikipedia articles to make a college embeddings that are compared to a user's free response field and similarity is calculated using the wordembedding class we made in pset 3. The college facts are also fed into the user's recommendations. This workflow is wrapped in prefect, a tool like luigi but uses normal python functions and classes that are simply wrapped in a decorator. This has many advantages, as it allows for easier to read code and is much more user friendly. 
+Similarly to Pset 3's document embeddings, we can compute comparisons between different universities, so that users
+could also type in a specific college they are interested in, and the app will show similar ones from the database.
+During the course of this project we will learn how to query stored data using the Django framework, and use python to
+perform computations using this data as input and then deliver results to the user.
+
+### Project Initialization Workflow
+
+The project begins with Niche's top 100 list of [Best colleges in America](https://www.niche.com/colleges/search/best-colleges/),
+scraped from their website and then saved to an S3 bucket. We decided to use Niche rather than the more popular rankings
+such as US News because they publish a combined list that includes research universities and liberal arts colleges,
+whereas US News ranks them separately in such a way that you cannot determine relative placement between colleges on different
+lists. The scraped HTML from Niche is then processed using Beautiful Soup, where relevant facts are collected by analyzing the HTML.
+For facts not available from the Niche list, such as student body population, in-state and out-of-state tuition, the workflow
+then queries the US Department of Education's [College Scorecard API](https://collegescorecard.ed.gov/data/documentation/).
+To obtain descriptions of each college, the workflow fetches the contents of their Wikipedia entries using the
+[Wikipedia python library](https://pypi.org/project/wikipedia/). These pages are then tokenized and provided to word2vec
+to train a word embedding model similar to the one used for Pset 3; the wikipedia articles are then embedded and stored
+as a numeric vector representing the description of each college. The vectors and college data are then saved into a
+SQLite database which will be used by the web app.
+This workflow is executed by Prefect, a task automation and scheduling package which is similar to Luigi but more readable and
+user-friendly. The workflow is organized into tasks and flows, designated by simply placing a Prefect `@task` decorator on each step.
 
 
     @task(log_stdout=True,nout=4,result=LocalResult(serializer=PandasSerializer(file_type='csv'),dir='./',location="facts.csv"))
@@ -46,7 +70,17 @@ The start of the cycle of the data begins with a html file of niche we uploaded 
     embeddings = np.array(list(map(embedding.embed_document, wiki_list)))
     college_embedding = pd.DataFrame(embeddings, names)
 
-In conclusion, it can be said this project demonstrates how to wrangle data. It is noteworthy that Niche charges money for a api, most of which can be obtained via html files and python. This project also possibly makes a better college matching app then any other on the internet. We have a free response forum, and our results are continious and not categorical. This project also can teach someone how to work with prefect, beautifulsoup, and the python wikipedia package. The code was made more readable then advanced, to enable coders to learn.
+
+### Application Deployment
+
+
+### Project Conclusions
+
+In conclusion, it can be said this project demonstrates how to wrangle data. It is noteworthy that Niche charges money
+for their api, most of which can be obtained via html files and python. This project also possibly makes a better college
+matching app then any other on the internet. We have a free response form, and our results are quantitative rather than
+categorical. This project also can teach someone how to work with Prefect, Beautiful Soup, and the Wikipedia pypi package.
+The code was made more readable then advanced, to enable coders to learn.
 
 
 Cary:
@@ -55,12 +89,12 @@ Cary:
 
 2. NLP of essay responses.
 
+3. GitHub Actions to deploy Sphinx documentation pages.
+
 Robi:
 
 1. Models (python classes that structure the database).
 
 2. Django web frontend
 
-Shared:
-
-1. calculations that score colleges based on the user input on forced choice questions.
+3. calculations that score colleges based on the user input on forced choice questions.
