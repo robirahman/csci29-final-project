@@ -15,7 +15,7 @@ before_script: # code coverage tool
    - ./cc-test-reporter before-build
 script:
   - pytest --cov-report xml --cov-report term
-  - make -C doc html
+  - make -C docsrc html
   - cp -a docsrc/_build/html/. docs
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
