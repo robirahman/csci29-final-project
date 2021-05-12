@@ -20,9 +20,7 @@ jobs:
     - stage: build
       name: Deploy to GitHub Pages
       script:
-        - pipenv run python submit.py
-        - pipenv run make -C docs/ html
-        - touch docs/build/html/.nojekyll
+        - cp -a docsrc/_build/html/. docs
       deploy:
         provider: pages:git
         verbose: true

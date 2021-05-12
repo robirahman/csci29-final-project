@@ -5,6 +5,12 @@ name = "pypi"
 
 [packages]
 sphinx = "*"
+django = "*"
+numpy = "*"
+bs4 = "*"
+pandas = "*"
+wikipedia = "*"
+gensim = "*"
 
 [dev-packages]
 
