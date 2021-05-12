@@ -44,6 +44,165 @@
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </section>
+<section id="csci29-final-project">
+<h1>csci29-final-project<a class="headerlink" href="#csci29-final-project" title="Permalink to this headline">¶</a></h1>
+<section id="advanced-python-for-data-science-final-project">
+<h2>Advanced Python for Data Science final project<a class="headerlink" href="#advanced-python-for-data-science-final-project" title="Permalink to this headline">¶</a></h2>
+<p>by Cary Judson and Robi Rahman</p>
+<section id="project-proposal">
+<h3>Project Proposal<a class="headerlink" href="#project-proposal" title="Permalink to this headline">¶</a></h3>
+<p>We want to make a web app that helps high schoolers decide where to
+apply to college. It would run on Django, with a frontend webpage that
+takes input from the user about their preferences (such as small vs
+large universities, geographical region, etc), queries a database with
+information about e.g. 100 colleges, computes some scoring functions
+that assess how well each college fits the user’s preferences, and
+produces recommendations.</p>
+<p>Example: user wants to go to university in the northeast, at a private
+school that has around 7000 undergraduates, and they have an SAT score
+of 1500 -&gt; app recommends they should apply to Harvard.</p>
+<p>Similarly to Pset 3’s document embeddings, we can compute comparisons
+between different universities, so that users could also type in a
+specific college they are interested in, and the app will show similar
+ones from the database. During the course of this project we will learn
+how to query stored data using the Django framework, and use python to
+perform computations using this data as input and then deliver results
+to the user.</p>
+</section>
+<section id="project-scope">
+<h3>Project Scope<a class="headerlink" href="#project-scope" title="Permalink to this headline">¶</a></h3>
+<p>Cary:</p>
+<ol class="arabic simple">
+<li><p>Implement web scraping and data loading workflow via Prefect.</p></li>
+<li><p>NLP of Wikipedia articles to train word2vec model and embed college
+descriptions.</p></li>
+<li><p>GitHub Actions to deploy Sphinx documentation pages.</p></li>
+</ol>
+<p>Robi:</p>
+<ol class="arabic simple">
+<li><p>ORM models to set up SQLite database of college information.</p></li>
+<li><p>Django web server and frontend HTML forms.</p></li>
+<li><p>Calculations that score colleges based on the user’s input.</p></li>
+</ol>
+</section>
+<section id="project-initialization-workflow">
+<h3>Project Initialization Workflow<a class="headerlink" href="#project-initialization-workflow" title="Permalink to this headline">¶</a></h3>
+<p>The project begins with Niche’s top 100 list of <a class="reference external" href="https://www.niche.com/colleges/search/best-colleges/">Best colleges in
+America</a>,
+scraped from their website and then saved to an S3 bucket. We decided to
+use Niche rather than the more popular rankings such as US News because
+they publish a combined list that includes research universities and
+liberal arts colleges, whereas US News ranks them separately in such a
+way that you cannot determine relative placement between colleges on
+different lists. The scraped HTML from Niche is then processed using
+Beautiful Soup, where relevant facts are collected by analyzing the
+HTML. For facts not available from the Niche list, such as student body
+population, in-state and out-of-state tuition, the workflow then queries
+the US Department of Education’s <a class="reference external" href="https://collegescorecard.ed.gov/data/documentation/">College Scorecard
+API</a>. To obtain
+descriptions of each college, the workflow fetches the contents of their
+Wikipedia entries using the <a class="reference external" href="https://pypi.org/project/wikipedia/">Wikipedia python
+library</a>. These pages are then
+tokenized and provided to word2vec to train a word embedding model
+similar to the one used for Pset 3; the wikipedia articles are then
+embedded and stored as a numeric vector representing the description of
+each college. The vectors and college data are then saved into a SQLite
+database which will be used by the web app. This workflow is executed by
+Prefect, a task automation and scheduling package which is similar to
+Luigi but more readable and user-friendly. The workflow is organized
+into tasks and flows, designated by simply placing a Prefect <code class="docutils literal notranslate"><span class="pre">&#64;task</span></code>
+decorator on each step.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@task</span><span class="p">(</span><span class="n">log_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nout</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">result</span><span class="o">=</span><span class="n">LocalResult</span><span class="p">(</span><span class="n">serializer</span><span class="o">=</span><span class="n">PandasSerializer</span><span class="p">(</span><span class="n">file_type</span><span class="o">=</span><span class="s1">&#39;csv&#39;</span><span class="p">),</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span><span class="n">location</span><span class="o">=</span><span class="s2">&quot;facts.csv&quot;</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;.card&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">string</span><span class="o">=</span><span class="s2">&quot;Sponsored&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;.search-result__title&quot;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+<span class="n">size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gov_api</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;2018.student.size&quot;</span><span class="p">])</span>
+<span class="n">state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gov_api</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;school.state&quot;</span><span class="p">])</span>
+
+<span class="n">wiki_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">search</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+    <span class="c1">#search wikipedia</span>
+    <span class="n">wiki</span> <span class="o">=</span> <span class="n">wikipedia</span><span class="o">.</span><span class="n">page</span><span class="p">(</span><span class="n">search</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+    <span class="c1">#save wikipedia page text in list</span>
+    <span class="n">wiki_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wiki</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;wiki&#39;</span><span class="p">:</span> <span class="n">wiki_list</span><span class="p">}</span>
+<span class="n">wiki_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">wiki_list</span>
+
+<span class="n">wiki_list</span> <span class="o">=</span> <span class="n">wiki_list</span><span class="p">[</span><span class="s1">&#39;wiki&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+<span class="n">tokenized_sentences</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WordEmbedding</span><span class="o">.</span><span class="n">tokenize</span><span class="p">,</span> <span class="n">wiki_list</span><span class="p">)))</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Word2Vec</span><span class="p">(</span><span class="n">tokenized_sentences</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vector_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">words</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">wv</span><span class="o">.</span><span class="n">key_to_index</span>
+<span class="n">we_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">word</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">wv</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">}</span>
+<span class="c1">#basically, feed it into pset 3 stuff, no explain needed</span>
+<span class="n">embedding</span> <span class="o">=</span> <span class="n">WordEmbedding</span><span class="p">(</span><span class="n">we_dict</span><span class="p">)</span>
+<span class="n">embeddings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">embedding</span><span class="o">.</span><span class="n">embed_document</span><span class="p">,</span> <span class="n">wiki_list</span><span class="p">)))</span>
+
+<span class="n">embedding</span> <span class="o">=</span> <span class="n">WordEmbedding</span><span class="p">(</span><span class="n">we_dict</span><span class="p">)</span>
+<span class="n">embeddings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">embedding</span><span class="o">.</span><span class="n">embed_document</span><span class="p">,</span> <span class="n">wiki_list</span><span class="p">)))</span>
+<span class="n">college_embedding</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="application-deployment">
+<h3>Application Deployment<a class="headerlink" href="#application-deployment" title="Permalink to this headline">¶</a></h3>
+<p>Once the workflow has completed, the app is ready for deployment. Upon
+running the Django server, the app hosts a web form with a survey of
+different aspects of colleges, including a free response text field. The
+user can fill in their preferences and a description of their desired
+college, and then submit the form. This triggers a POST request, from
+which Django obtains their inputs, and computes a match score based on
+the similarity of the user’s responses to the data about each college,
+queried from the database which was populated by the workflow. The
+server then returns the top 10 colleges by match score and displays them
+on a results page.</p>
+<p>The database models are designed using a snowflake schema with college
+locations stored as foreign keys to states rather than as strings. This
+allows states to be grouped into regions, and users can specify a
+preference to attend college in a geographical region, in which case
+colleges in those states are elevated in the results. See the docstrings
+for the Django models for details.</p>
+</section>
+<section id="project-conclusions">
+<h3>Project Conclusions<a class="headerlink" href="#project-conclusions" title="Permalink to this headline">¶</a></h3>
+<p>During this project, we gained experience with various aspects of Python
+programming. Web scraping was a new challenge not explored earlier in
+the class, but we were able to find and apply several packages that made
+it easy to collect valuable data. It is noteworthy that Niche sells the
+data we needed through a premium subscription service, but as advanced
+python programmers, it is possible to obtain it for free using open
+source tools, and even automate the process.</p>
+<p>Advanced python concepts were applied in several ways to optimize the
+project’s implementation. The Prefect library’s <code class="docutils literal notranslate"><span class="pre">&#64;task</span></code> decorator can
+be applied to any functions to wrap them into the workflow. Partial
+function evaluation was helpful when processing a set of user inputs, by
+binding it to the general function that computes the match between any
+student and any college, and returning a specific function that computes
+the match between any college and a <em>specific</em> student. This function
+can then be applied in a functional, vectorized manner to each college
+in the dataset, to efficiently find the top matches. Predicate pushdown
+on matching state or region foreign keys reduces computational overhead
+while finding colleges that match a student’s location preferences.</p>
+<p>The final product, our college recommendation engine, produces better
+recommendations than any of the major alternatives available online from
+large companies such as College Board, US News, and Niche. Most of them
+are categorical, and work by ruling out schools that are not exact
+matches for a student’s query: for example, they ask if you want to join
+a fraternity in college, and if you say yes (/no) they only show
+colleges that do (/don’t) have fraternities. Our app is quantitative and
+still might put a college in your top 10 if it is different from one
+desired aspect but fulfills most of your other preferences. We also have
+a free response form that processes descriptions; there are similar
+alternatives, such as CollegeBoard’s BigFuture, but those search for
+matching keywords rather than judging similarity of meaning or
+qualities.</p>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -93,7 +252,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2021, Cary Judson & Robi Rahman.
+      &copy;2021, Cary Judson, Robi Rahman.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
